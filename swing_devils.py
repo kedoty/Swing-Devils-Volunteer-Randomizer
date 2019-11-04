@@ -184,6 +184,8 @@ def find_people():
     
     #find the people
     for week_num in range(len(thurs)+1):
+        if week_num in skip_week:
+            continue
         # reset number of times each person has helped this week
         this_week = {}
         for name in name_list:
@@ -287,8 +289,6 @@ weekly_schedule[8][0] = f'{month}/{friday}/{year}'
 # go through all the weeks (except the extras)
 # the "week" after contains the facebook job
 for week_num,week in enumerate(week_list[0:num_thursdays]):
-    if week == {}:
-        break
     # find row and col of where to add the date and people
     if week_num == 0:
         col = 1
@@ -310,6 +310,11 @@ for week_num,week in enumerate(week_list[0:num_thursdays]):
         
     # add the date
     weekly_schedule[col][row] = f'{thurs[week_num]:%m/%d/%Y}'
+    
+    # check to see if this week should be skipped
+    if week_num in skip_week:
+        weekly_schedule[col][row + 17] = skip_week[week_num]
+        continue
     
     # find the offset to add the specific pos
     for position, name in week.items():
