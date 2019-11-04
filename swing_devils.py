@@ -21,8 +21,8 @@ from datetime import datetime, timedelta
 #        "Geoff": [1],
 #        }
 gone = {"Mariah": [2],
-        "Madeline": [0,3,4],
-        "Courtney": [3,4],
+        "Madeline": [0,3],
+        "Courtney": [3],
         }
 
 # Geoff has volunteered to DJ and close the first week
@@ -32,12 +32,14 @@ gone = {"Mariah": [2],
 #               {},
 #               {},
 #               {},
+#               {},
 #               ]
-volunteered = [{'DJ':'Geoff'},
-               {},
-               {},
-               {},
-               {},
+volunteered = [{'DJ':'Geoff'},  # first week
+               {},              # second week
+               {},              # third week
+               {},              # fouth week
+               {},              # possible fifth week
+               {},              # facebook
                ]
 
 
@@ -50,6 +52,7 @@ day = 7
 friday = 8
 #extra_open = 2 #third thursday needs an extra opener
 extra_open = -1
+# which week to skip and why
 skip_week = {3:'Thanksgiving'}
 #monday = 26
 
@@ -60,6 +63,7 @@ while next_thurs.month == month:
     thurs.append(next_thurs)
     next_thurs = thurs[-1] + timedelta(days=7)
 
+num_thursdays = len(thurs)
 
 weekly_schedule = pd.read_csv(
     "swing_devils.csv",
@@ -179,82 +183,82 @@ def find_people():
     find_name_input = (week_list, vol_num, duty_dict, counter)
     
     #find the people
-    for week_num in range(len(thurs)):        
+    for week_num in range(len(thurs)+1):
         # reset number of times each person has helped this week
         this_week = {}
         for name in name_list:
             this_week [name] = 0
         
-        # add opener
-        not_allowed = []
-        opener = find_name(
-                'Opening',
-                this_week,
-                week_num,
-                find_name_input,
-                not_allowed)
-
-        # add extra opener
-        if week_num == extra_open:
-            not_allowed = [opener]
-            find_name('Extra Opener',
-                      this_week,
-                      week_num,
-                      find_name_input,
-                      not_allowed)
-        
-        # add Teaching (lead)
-        lead = find_name('Teaching (lead)',
-                         this_week,
-                         week_num,
-                         find_name_input,
-                         not_allowed)
-        
-        # add Teaching (follow)
-        not_allowed = lead
-        follow = find_name('Teaching (follow)',
-                           this_week,
-                           week_num,
-                           find_name_input,
-                           not_allowed)
-        
-        # put lead and follow together
-        week_list[week_num]['Teaching'] = lead + ' and ' + follow
-        
-        # add DJ
-        not_allowed = [opener]
-        DJ = find_name('DJ',
-                       this_week,
-                       week_num,
-                       find_name_input,
-                       not_allowed)
-        
-        # add First Door Shift
-        not_allowed = [lead, follow, DJ]
-        door = find_name('First Door Shift',
-                         this_week,
-                         week_num,
-                         find_name_input,
-                         not_allowed)
+        if week_num < len(thurs):
+            # add opener
+            not_allowed = []
+            opener = find_name(
+                    'Opening',
+                    this_week,
+                    week_num,
+                    find_name_input,
+                    not_allowed)
     
-        # add Closing (tear down)
-        not_allowed =[opener, door]
-        close = find_name('Closing (tear down)',
+            # add extra opener
+            if week_num == extra_open:
+                not_allowed = [opener]
+                find_name('Extra Opener',
                           this_week,
                           week_num,
                           find_name_input,
                           not_allowed)
-    
-        # add Closing (count till)
-        not_allowed = [close, opener, door]
-        find_name('Closing (count till)',
-                  this_week,
-                  week_num,
-                  find_name_input,
-                  not_allowed)
-
-        # add Facebook person
-        if week_num == 3:
+            
+            # add Teaching (lead)
+            lead = find_name('Teaching (lead)',
+                             this_week,
+                             week_num,
+                             find_name_input,
+                             not_allowed)
+            
+            # add Teaching (follow)
+            not_allowed = lead
+            follow = find_name('Teaching (follow)',
+                               this_week,
+                               week_num,
+                               find_name_input,
+                               not_allowed)
+            
+            # put lead and follow together
+            week_list[week_num]['Teaching'] = lead + ' and ' + follow
+            
+            # add DJ
+            not_allowed = [opener]
+            DJ = find_name('DJ',
+                           this_week,
+                           week_num,
+                           find_name_input,
+                           not_allowed)
+            
+            # add First Door Shift
+            not_allowed = [lead, follow, DJ]
+            door = find_name('First Door Shift',
+                             this_week,
+                             week_num,
+                             find_name_input,
+                             not_allowed)
+        
+            # add Closing (tear down)
+            not_allowed =[opener, door]
+            close = find_name('Closing (tear down)',
+                              this_week,
+                              week_num,
+                              find_name_input,
+                              not_allowed)
+        
+            # add Closing (count till)
+            not_allowed = [close, opener, door]
+            find_name('Closing (count till)',
+                      this_week,
+                      week_num,
+                      find_name_input,
+                      not_allowed)
+        else: 
+            # add Facebook person
             not_allowed = []
             find_name('Facebook Events',
                       this_week,
@@ -280,7 +284,9 @@ while redo:
 weekly_schedule[8][0] = f'{month}/{friday}/{year}'
 #weekly_schedule[8][19] = f'{month}/{monday}/{year}'
 
-for week_num,week in enumerate(week_list):
+# go through all the weeks (except the extras)
+# the "week" after contains the facebook job
+for week_num,week in enumerate(week_list[0:num_thursdays]):
     if week == {}:
         break
     # find row and col of where to add the date and people
@@ -324,16 +330,16 @@ for week_num,week in enumerate(week_list):
         elif (position == 'Teaching (lead)' or
               position == 'Teaching (follow)'):
             continue
-        elif position == 'Facebook Events':
-            weekly_schedule[8][19] = name
-            continue
         else:
             raise RuntimeError("Bad Position")
     
         # add the person
         weekly_schedule[col][row + row_add] = name
 
+# add the facebook position
+weekly_schedule[8][19] = week_list[num_thursdays]['Facebook Events']
 
+# output the schedule as a csv file
 out_name = f"swing_devils_out_{year}_{month:02}.csv"
 weekly_schedule.to_csv(out_name, index=False, header=False)
 
