@@ -16,31 +16,33 @@ from datetime import datetime, timedelta
 # list of dictionaries for who volunteered for what each month
 # hard coded (need to change each month)
 ###############################
-# Doty is gone weeks 3 and 5, Geoff is gone week 2
-#gone = {"Doty": [2,4],
-#        "Geoff": [1],
-#        }
-gone = {"Mariah": [2],
-        "Madeline": [0,3],
-        "Courtney": [3],
-        }
+# Kyle is gone weeks 3 and 5, Geoff is gone week 2
+#gone = {
+#    "Kyle": [2,4],
+#    "Geoff": [1],
+#    }
+gone = {
+    "Courtney": [0],
+    }
 
 # Geoff has volunteered to DJ and close the first week
 # as well as DJ the second week
-#volunteered = [{'DJ':'Geoff', 'Closing (tear down)':'Geoff'},
-#               {'DJ':'Geoff'},
-#               {},
-#               {},
-#               {},
-#               {},
-#               ]
-volunteered = [{'DJ':'Geoff'},  # first week
-               {},              # second week
-               {},              # third week
-               {},              # fouth week
-               {},              # possible fifth week
-               {},              # facebook
-               ]
+#volunteered = [
+#    {'DJ':'Geoff', 'Closing (tear down)':'Geoff'},
+#    {'DJ':'Geoff'},
+#    {},
+#    {},
+#    {},
+#    {},
+#    ]
+volunteered = [
+    {'DJ':'Geoff'},  # first week
+    {},              # second week
+    {},              # third week
+    {},              # fouth week
+    {},              # possible fifth week
+    {},              # facebook
+    ]
 
 
 ###############
