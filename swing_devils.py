@@ -18,27 +18,27 @@ from datetime import datetime, timedelta
 ###############################
 # Kyle is gone weeks 3 and 5, Geoff is gone week 2
 #gone = {
-#    "Kyle": [2,4],
-#    "Geoff": [1],
+#    'Kyle': [2,4],
+#    'Geoff': [1],
 #    }
 gone = {
-    "Courtney": [0],
+    'Madeline': [0],
     }
 
 # Geoff has volunteered to DJ and close the first week
 # as well as DJ the second week
 #volunteered = [
-#    {'DJ':'Geoff', 'Closing (tear down)':'Geoff'},
-#    {'DJ':'Geoff'},
+#    {'DJ': 'Geoff', 'Closing (tear down)': 'Geoff'},
+#    {'DJ': 'Geoff'},
 #    {},
 #    {},
 #    {},
 #    {},
 #    ]
 volunteered = [
-    {'DJ':'Geoff'},  # first week
-    {},              # second week
-    {},              # third week
+    {'DJ': 'Geoff'},  # first week
+    {'Closing (tear down)': 'Geoff'}, # second week
+    {'Opening': 'Geoff'}, # third week
     {},              # fouth week
     {},              # possible fifth week
     {},              # facebook
@@ -49,13 +49,13 @@ volunteered = [
 #get thrusdays#
 ###############
 year = 2019
-month = 11
-day = 7
-friday = 8
+month = 12
+day = 5
+friday = 13
 #extra_open = 2 #third thursday needs an extra opener
 extra_open = -1
 # which week to skip and why
-skip_week = {3:'Thanksgiving'}
+skip_week = {3:'Christmas Break'}
 #monday = 26
 
 thurs = [datetime(year,month,day)]
