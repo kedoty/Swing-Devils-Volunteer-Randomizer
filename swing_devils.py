@@ -22,6 +22,8 @@ from datetime import datetime, timedelta
 #    "Geoff": [1],
 #    }
 gone = {
+    "Madeline": [0],
+    "Mariah": [1],
     }
 
 # Geoff has volunteered to DJ and close the first week
@@ -35,14 +37,20 @@ gone = {
 #    {},
 #    ]
 volunteered = [
-    {},             # first week
-    {"Teaching (lead)": "Geoff",
-     "Teaching (follow)": "Madeline",
-     "DJ": "Geoff"},# second week
-    {},             # third week
-    {},             # fouth week
-    {},             # possible fifth week
-    {},             # facebook
+    # first week
+    {"Opening": "Colby",
+    "First Door Shift": "Colby",
+    "DJ": "Geoff"},
+    # second week
+    {},
+    # third week
+    {},
+    # fouth week
+    {},
+    # possible fifth week
+    {},
+    # facebook
+    {},
     ]
 
 
@@ -50,9 +58,9 @@ volunteered = [
 #get thrusdays#
 ###############
 year = 2020
-month = 2
-day = 6
-friday = 14
+month = 3
+day = 5
+friday = 13
 #extra_open = 2 #third thursday needs an extra opener
 extra_open = -1
 # which week to skip and why
@@ -60,11 +68,11 @@ skip_week = {}
 #monday = 26
 
 thurs = [datetime(year,month,day)]
-next_thurs = thurs[-1] + timedelta(days=7)
-
-while next_thurs.month == month:
-    thurs.append(next_thurs)
-    next_thurs = thurs[-1] + timedelta(days=7)
+#next_thurs = thurs[-1] + timedelta(days=7)
+#
+#while next_thurs.month == month:
+#    thurs.append(next_thurs)
+#    next_thurs = thurs[-1] + timedelta(days=7)
 
 num_thursdays = len(thurs)
 
@@ -127,7 +135,7 @@ def find_name(position,
             # exceed times per week
             or this_week[name] >= 2
             # person gone this week
-            or name in gone and week_num in gone[name]
+            or (name in gone and week_num in gone[name])
             # person not allowed based on previous assignments
             or name in not_allowed):
 
