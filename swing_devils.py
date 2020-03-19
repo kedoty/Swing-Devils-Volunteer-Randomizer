@@ -5,30 +5,28 @@ Created on Thu Aug 16 20:45:28 2018
 @author: kedot
 """
 
-
-import pandas as pd
-import random as rd
-import copy as cp
 from datetime import datetime, timedelta
 
-###############################
+import copy as cp
+import pandas as pd
+import random as rd
+
+#===================================
 # dictionary of people and the week num they are gone
 # list of dictionaries for who volunteered for what each month
 # hard coded (need to change each month)
-###############################
+#===================================
 # Kyle is gone weeks 3 and 5, Geoff is gone week 2
-#gone = {
+# gone = {
 #    "Kyle": [2,4],
 #    "Geoff": [1],
 #    }
 gone = {
-    "Madeline": [0],
-    "Mariah": [1],
     }
 
 # Geoff has volunteered to DJ and close the first week
 # as well as DJ the second week
-#volunteered = [
+# volunteered = [
 #    {"DJ": "Geoff", "Closing (tear down)": "Geoff"},
 #    {"DJ": "Geoff"},
 #    {},
@@ -38,9 +36,7 @@ gone = {
 #    ]
 volunteered = [
     # first week
-    {"Opening": "Colby",
-    "First Door Shift": "Colby",
-    "DJ": "Geoff"},
+    {},
     # second week
     {},
     # third week
@@ -53,26 +49,25 @@ volunteered = [
     {},
     ]
 
-
-###############
-#get thrusdays#
-###############
+#===================================
+# get thrusdays
+#===================================
 year = 2020
-month = 3
-day = 5
-friday = 13
-#extra_open = 2 #third thursday needs an extra opener
+month = 4
+day = 2
+friday = 10
+# extra_open = 2 #third thursday needs an extra opener
 extra_open = -1
 # which week to skip and why
 skip_week = {}
-#monday = 26
+# monday = 26
 
-thurs = [datetime(year,month,day)]
-#next_thurs = thurs[-1] + timedelta(days=7)
-#
-#while next_thurs.month == month:
-#    thurs.append(next_thurs)
-#    next_thurs = thurs[-1] + timedelta(days=7)
+thurs = [datetime(year, month, day)]
+next_thurs = thurs[-1] + timedelta(days=7)
+
+while next_thurs.month == month:
+   thurs.append(next_thurs)
+   next_thurs = thurs[-1] + timedelta(days=7)
 
 num_thursdays = len(thurs)
 
@@ -81,9 +76,9 @@ weekly_schedule = pd.read_csv(
     header=None,
     keep_default_na=False)
 
-########
-#get volunteer data
-########
+#===================================
+# get volunteer data
+#===================================
 volunteer = pd.read_csv(
     "swing_devils_vol.csv",
     header=0,
@@ -91,13 +86,14 @@ volunteer = pd.read_csv(
     keep_default_na=False)
 
 
-###############################
+#===================================
 # The error class and find people functions
-###############################
+#===================================
 class CounterOverflowError(RuntimeError):
     """
     Error when there have been too many itterations.
     """
+
 
 def find_name(position,
               this_week,
@@ -151,9 +147,10 @@ def find_name(position,
         week_list[week_num][position] = name
 
     this_week[name] += 1
-    if this_week[name] == 1: #first add for this week
+    if this_week[name] == 1:  # first add for this week
         vol_num[name] += 1
     return name
+
 
 def find_people():
     """
@@ -198,7 +195,7 @@ def find_people():
                 duty_dict[d_name].append(name)
 
     # find the people
-    for week_num in range(len(thurs)+1):
+    for week_num in range(len(thurs) + 1):
         if week_num in skip_week:
             continue
         # reset number of times each person has helped this week
@@ -209,7 +206,7 @@ def find_people():
         if week_num < len(thurs):
             # add opener
             not_allowed = []
-            opener = find_name("Opening",
+            opener = find_name("Opening and First Door Shift",
                                this_week,
                                week_num,
                                find_name_input,
@@ -225,7 +222,7 @@ def find_people():
                           not_allowed)
 
             # add Teaching (lead)
-            not_allowed = []
+            not_allowed = [opener]
             lead = find_name("Teaching (lead)",
                              this_week,
                              week_num,
@@ -233,7 +230,7 @@ def find_people():
                              not_allowed)
 
             # add Teaching (follow)
-            not_allowed = [lead]
+            not_allowed = [opener, lead]
             follow = find_name("Teaching (follow)",
                                this_week,
                                week_num,
@@ -251,31 +248,14 @@ def find_people():
                            find_name_input,
                            not_allowed)
 
-            # add First Door Shift
-            not_allowed = [lead, follow, DJ]
-            door = find_name("First Door Shift",
-                             this_week,
-                             week_num,
-                             find_name_input,
-                             not_allowed)
-
-            # add Closing (tear down)
-            not_allowed = [opener, door]
-            if "Taylor" in not_allowed:
-                not_allowed.remove("Taylor")
-            close = find_name("Closing (tear down)",
+            # add Closing
+            not_allowed = [opener]
+            close = find_name("Closing",
                               this_week,
                               week_num,
                               find_name_input,
                               not_allowed)
 
-            # add Closing (count till)
-            not_allowed = [close, opener, door]
-            find_name("Closing (count till)",
-                      this_week,
-                      week_num,
-                      find_name_input,
-                      not_allowed)
         else:
             # add Facebook person
             not_allowed = []
@@ -287,6 +267,7 @@ def find_people():
 
     return week_list
 
+
 # Run the find people function
 redo = True
 while redo:
@@ -296,16 +277,15 @@ while redo:
     except CounterOverflowError as err:
         print(repr(err))
 
-
-###############################
+#===================================
 # Add dates and people to the sheet
-###############################
+#===================================
 weekly_schedule[8][0] = f"{month}/{friday}/{year}"
-#weekly_schedule[8][19] = f"{month}/{monday}/{year}"
+# weekly_schedule[8][19] = f"{month}/{monday}/{year}"
 
 # go through all the weeks (except the extras)
 # the "week" after contains the facebook job
-for week_num,week in enumerate(week_list[0:num_thursdays]):
+for week_num, week in enumerate(week_list[0:num_thursdays]):
     # find row and col of where to add the date and people
     if week_num == 0:
         col = 1
@@ -315,13 +295,13 @@ for week_num,week in enumerate(week_list[0:num_thursdays]):
         row = 0
     elif week_num == 2:
         col = 1
-        row = 20
+        row = 17
     elif week_num == 3:
         col = 4
-        row = 20
+        row = 17
     elif week_num == 4:
         col = 1
-        row = 40
+        row = 34
     else:
         raise RuntimeError("too many weeks???")
 
@@ -331,12 +311,12 @@ for week_num,week in enumerate(week_list[0:num_thursdays]):
     # check to see if this week should be skipped
     if week_num in skip_week:
         if skip_week[week_num]:
-            weekly_schedule[col][row + 17] = skip_week[week_num]
+            weekly_schedule[col][row + 14] = skip_week[week_num]
         continue
 
     # find the offset to add the specific pos
     for position, name in week.items():
-        if position == "Opening":
+        if position == "Opening and First Door Shift":
             row_add = 2
         elif position == "Extra Opener":
             row_add = 3
@@ -344,12 +324,8 @@ for week_num,week in enumerate(week_list[0:num_thursdays]):
             row_add = 5
         elif position == "DJ":
             row_add = 9
-        elif position == "First Door Shift":
+        elif position == "Closing":
             row_add = 12
-        elif position == "Closing (tear down)":
-            row_add = 15
-        elif position == "Closing (count till)":
-            row_add = 16
         elif (position == "Teaching (lead)" or
               position == "Teaching (follow)"):
             continue
@@ -365,13 +341,4 @@ weekly_schedule[8][18] = week_list[num_thursdays]["Facebook Events"]
 # output the schedule as a csv file
 out_name = f"swing_devils_out_{year}_{month:02}.csv"
 weekly_schedule.to_csv(out_name, index=False, header=False)
-
-
-
-
-
-
-
-
-
 
