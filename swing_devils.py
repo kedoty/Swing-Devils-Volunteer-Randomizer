@@ -1,17 +1,15 @@
 """
-@author: kedoty
+@author: kyledoty
 """
 
 import calendar
-from datetime import datetime, timedelta
-
+import datetime
 import copy as cp
 import pandas as pd
-# pylint: disable=wrong-import-order
 import random as rd
 
-YEAR = 2020
-MONTH = 5
+YEAR = 2021
+MONTH = 9
 # extra_open = 2 #third thursday needs an extra opener
 EXTRA_OPEN = -1
 # which week to skip and why
@@ -23,6 +21,7 @@ SKIP_WEEK = {}
 #    "Geoff": [1],
 #    }
 GONE = {
+    "Jessica": [0]
     }
 
 # Geoff has volunteered to the second week
@@ -36,7 +35,7 @@ GONE = {
 #    ]
 VOLUNTEERED = [
     # first week
-    {},
+    {"DJ": "Geoff", "Teaching (lead)": "Geoff", "Teaching (follow)": "Katrina"},
     # second week
     {},
     # third week
@@ -57,16 +56,12 @@ VOLUNTEER_OPTIONS = pd.read_csv(
 
 
 class CounterOverflowError(RuntimeError):
-    """
-    Error when there have been too many itterations.
-    """
+    """Error when there have been too many itterations."""
 
 
 # pylint: disable=too-many-instance-attributes
 class VolunteerPositions:
-    """
-    Class that holds and finds the volunteers for each week.
-    """
+    """Class that holds and finds the volunteers for each week."""
 
     # pylint: disable=too-many-arguments
     def __init__(self, year, month, skip_week,
@@ -74,11 +69,12 @@ class VolunteerPositions:
         """
         Initialize the data.
         """
-        first_of_month = datetime(year, month, 1)
+        first_of_month = datetime.datetime(year, month, 1)
         num_days = calendar.monthrange(year, month)[1]
         self.thursdays = [
-            first_of_month + timedelta(n) for n in range(num_days)
-            if (first_of_month + timedelta(n)).weekday() == 3]
+            first_of_month + datetime.timedelta(n) for n in range(num_days)
+            if (first_of_month + datetime.timedelta(n)).weekday() == 3
+            ]
         self.num_thursdays = len(self.thursdays)
         self.skip_week = skip_week
         self.gone = cp.deepcopy(gone)
