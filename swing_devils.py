@@ -1,7 +1,6 @@
 """
-@author: kyledoty
+Script to modify the Swing Devils volunteer sheet.
 """
-
 import calendar
 import datetime
 import copy as cp
@@ -9,19 +8,27 @@ import pandas as pd
 import random as rd
 
 YEAR = 2021
-MONTH = 9
-# extra_open = 2 #third thursday needs an extra opener
-EXTRA_OPEN = -1
+MONTH = 11
+
+# EXTRA_OPEN = 2 # third thursday needs an extra opener
+EXTRA_OPEN = -1 # No extra open needed
+
 # which week to skip and why
-SKIP_WEEK = {}
+# SKIP_WEEK = {
+#     3: "Thanksgiving",
+#     }
+SKIP_WEEK = {
+    3: "Thanksgiving",
+    }
 
 # Kyle is gone weeks 3 and 5, Geoff is gone week 2
-# gone = {
+# GONE = {
 #    "Kyle": [2,4],
 #    "Geoff": [1],
 #    }
 GONE = {
-    "Jessica": [0]
+    "Courtney": [1],
+    "Geoff": [1],
     }
 
 # Geoff has volunteered to the second week
@@ -35,7 +42,7 @@ GONE = {
 #    ]
 VOLUNTEERED = [
     # first week
-    {"DJ": "Geoff", "Teaching (lead)": "Geoff", "Teaching (follow)": "Katrina"},
+    {},
     # second week
     {},
     # third week
@@ -165,11 +172,11 @@ class VolunteerPositions:
         Find people for each option for each week of the month.
         """
         positions_to_add = [
-            "Opening and First Door Shift",
+            "Closing",
+            "DJ",
             "Teaching (lead)",
             "Teaching (follow)",
-            "DJ",
-            "Closing"
+            "Opening and First Door Shift",
             ]
 
         for week_num in range(self.num_thursdays + 1):
