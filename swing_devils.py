@@ -8,7 +8,7 @@ import pandas as pd
 import random as rd
 
 YEAR = 2021
-MONTH = 11
+MONTH = 12
 
 # EXTRA_OPEN = 2 # third thursday needs an extra opener
 EXTRA_OPEN = -1 # No extra open needed
@@ -18,7 +18,8 @@ EXTRA_OPEN = -1 # No extra open needed
 #     3: "Thanksgiving",
 #     }
 SKIP_WEEK = {
-    3: "Thanksgiving",
+    3: "",
+    4: "",
     }
 
 # Kyle is gone weeks 3 and 5, Geoff is gone week 2
@@ -27,8 +28,6 @@ SKIP_WEEK = {
 #    "Geoff": [1],
 #    }
 GONE = {
-    "Courtney": [1],
-    "Geoff": [1],
     }
 
 # Geoff has volunteered to the second week
