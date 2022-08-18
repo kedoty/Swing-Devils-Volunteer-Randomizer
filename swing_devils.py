@@ -8,10 +8,7 @@ import pandas as pd
 import random as rd
 
 YEAR = 2022
-MONTH = 1
-
-# EXTRA_OPEN = 2 # third thursday needs an extra opener
-EXTRA_OPEN = -1 # No extra open needed
+MONTH = 8
 
 # which week to skip and why
 # SKIP_WEEK = {
@@ -19,6 +16,7 @@ EXTRA_OPEN = -1 # No extra open needed
 #     }
 SKIP_WEEK = {
     0: "",
+    1: "",
     }
 
 # Kyle is gone weeks 3 and 5, Geoff is gone week 2
@@ -27,6 +25,7 @@ SKIP_WEEK = {
 #    "Geoff": [1],
 #    }
 GONE = {
+    "Colby": [2],
     }
 
 # Geoff has volunteered to the second week
@@ -40,15 +39,24 @@ GONE = {
 #    ]
 VOLUNTEERED = [
     # first week
-    {},
+    {
+        "First Door Shift": "Colby",
+    },
     # second week
-    {},
+    {
+        "First Door Shift": "Colby",
+    },
     # third week
-    {"Teaching (lead)": "Geoff", "DJ": "Geoff"},
+    {
+        # "First Door Shift": "Colby",
+        "Closing": "Kyle"
+    },
     # fouth week
-    {},
+    {
+    },
     # possible fifth week
-    {},
+    {
+    },
     # facebook
     {},
     ]
@@ -152,10 +160,7 @@ class VolunteerPositions:
                     print(f"Week {self.week_num}: {name} at {position}")
                     raise CounterOverflowError(f"counter = {self.counter}")
                 self.counter += 1
-                if position == "Extra Opener":
-                    name = rd.choice(self.duty_dict["Opening"])
-                else:
-                    name = rd.choice(self.duty_dict[position])
+                name = rd.choice(self.duty_dict[position])
 
             self.week_list[self.week_num][position] = name
 
@@ -165,7 +170,7 @@ class VolunteerPositions:
         self.gone[name].append(self.week_num)
         return name
 
-    def find_people(self, extra_open):
+    def find_people(self):
         """
         Find people for each option for each week of the month.
         """
@@ -174,7 +179,7 @@ class VolunteerPositions:
             "DJ",
             "Teaching (lead)",
             "Teaching (follow)",
-            "Opening and First Door Shift",
+            "First Door Shift",
             ]
 
         for week_num in range(self.num_thursdays + 1):
@@ -184,13 +189,10 @@ class VolunteerPositions:
             if week_num < self.num_thursdays:
                 for position in positions_to_add:
                     self.find_name(position)
-                # put lead and follow together
-                self.week_list[week_num]["Teaching"] = (
-                    f"{self.week_list[week_num]['Teaching (lead)']} and "
-                    f"{self.week_list[week_num]['Teaching (follow)']}")
-                # check if need to add extra opener
-                if week_num == extra_open:
-                    self.find_name("Extra Opener")
+                # # put lead and follow together
+                # self.week_list[week_num]["Teaching"] = (
+                #     f"{self.week_list[week_num]['Teaching (lead)']} and "
+                #     f"{self.week_list[week_num]['Teaching (follow)']}")
             else:
                 # add Facebook person
                 self.find_name("Facebook Events")
@@ -245,18 +247,18 @@ class VolunteerPositions:
 
             # find the offset to add the specific pos
             for position, name in week.items():
-                if position == "Opening and First Door Shift":
+                if position == "First Door Shift":
                     row_add = 2
-                elif position == "Extra Opener":
-                    row_add = 3
-                elif position == "Teaching":
-                    row_add = 5
+                # elif position == "Teaching":
+                #     row_add = 5
                 elif position == "DJ":
                     row_add = 9
                 elif position == "Closing":
                     row_add = 12
-                elif position in ("Teaching (lead)", "Teaching (follow)"):
-                    continue
+                elif position == "Teaching (lead)":
+                    row_add = 5
+                elif position == "Teaching (follow)":
+                    row_add = 6
                 else:
                     raise RuntimeError("Bad Position")
 
@@ -285,7 +287,7 @@ def main():
                 gone=GONE,
                 volunteered=VOLUNTEERED,
                 volunteer_options=VOLUNTEER_OPTIONS)
-            vol_pos.find_people(extra_open=EXTRA_OPEN)
+            vol_pos.find_people()
             vol_pos.add_to_spreadsheet()
             break
         except CounterOverflowError as err:
