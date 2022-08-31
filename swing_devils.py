@@ -8,15 +8,18 @@ import pandas as pd
 import random as rd
 
 YEAR = 2022
-MONTH = 8
+MONTH = 9
 
 # which week to skip and why
 # SKIP_WEEK = {
 #     3: "Thanksgiving",
 #     }
 SKIP_WEEK = {
-    0: "",
-    1: "",
+    # 0: "",
+    # 1: "",
+    # 2: "",
+    # 3: "",
+    # 4: "",
     }
 
 # Kyle is gone weeks 3 and 5, Geoff is gone week 2
@@ -25,7 +28,8 @@ SKIP_WEEK = {
 #    "Geoff": [1],
 #    }
 GONE = {
-    "Colby": [2],
+    "Christy": [0],
+    "Nam": [0],
     }
 
 # Geoff has volunteered to the second week
@@ -41,15 +45,18 @@ VOLUNTEERED = [
     # first week
     {
         "First Door Shift": "Colby",
+        "Teaching (lead)": "Kyle",
+        "Teaching (follow)": "Mariah",
+        "Teaching (intermediate)": "Kyle",
+        "DJ": "Geoff",
     },
     # second week
     {
-        "First Door Shift": "Colby",
+        # "First Door Shift": "Colby",
     },
     # third week
     {
         # "First Door Shift": "Colby",
-        "Closing": "Kyle"
     },
     # fouth week
     {
@@ -175,6 +182,7 @@ class VolunteerPositions:
         Find people for each option for each week of the month.
         """
         positions_to_add = [
+            "Teaching (intermediate)",
             "Closing",
             "DJ",
             "Teaching (lead)",
@@ -226,13 +234,13 @@ class VolunteerPositions:
                 row = 0
             elif week_num == 2:
                 col = 1
-                row = 17
+                row = 18
             elif week_num == 3:
                 col = 4
-                row = 17
+                row = 18
             elif week_num == 4:
                 col = 1
-                row = 34
+                row = 36
             else:
                 raise RuntimeError("too many weeks???")
 
@@ -249,16 +257,16 @@ class VolunteerPositions:
             for position, name in week.items():
                 if position == "First Door Shift":
                     row_add = 2
-                # elif position == "Teaching":
-                #     row_add = 5
-                elif position == "DJ":
-                    row_add = 9
-                elif position == "Closing":
-                    row_add = 12
                 elif position == "Teaching (lead)":
                     row_add = 5
                 elif position == "Teaching (follow)":
                     row_add = 6
+                elif position == "Teaching (intermediate)":
+                    row_add = 7
+                elif position == "DJ":
+                    row_add = 10
+                elif position == "Closing":
+                    row_add = 13
                 else:
                     raise RuntimeError("Bad Position")
 
@@ -266,7 +274,7 @@ class VolunteerPositions:
                 volunteer_spreadsheet[col][row + row_add] = name
 
         # add the facebook position
-        volunteer_spreadsheet[8][18] = self.week_list[
+        volunteer_spreadsheet[8][20] = self.week_list[
             self.num_thursdays]["Facebook Events"]
 
         # output the schedule as a csv file
