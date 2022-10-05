@@ -2,13 +2,14 @@
 Script to modify the Swing Devils volunteer sheet.
 """
 import calendar
-import datetime
+import datetime as dt
 import copy as cp
 import pandas as pd
 import random as rd
+import time
 
 YEAR = 2022
-MONTH = 9
+MONTH = 10
 
 # which week to skip and why
 # SKIP_WEEK = {
@@ -28,8 +29,10 @@ SKIP_WEEK = {
 #    "Geoff": [1],
 #    }
 GONE = {
-    "Christy": [0],
-    "Nam": [0],
+    "Christy": [0,2],
+    "Edina": [3],
+    "Kyle": [1,2,3],
+    "Jessica": [1,2,3],
     }
 
 # Geoff has volunteered to the second week
@@ -44,22 +47,28 @@ GONE = {
 VOLUNTEERED = [
     # first week
     {
-        "First Door Shift": "Colby",
-        "Teaching (lead)": "Kyle",
-        "Teaching (follow)": "Mariah",
-        "Teaching (intermediate)": "Kyle",
-        "DJ": "Geoff",
+        "Teaching (intermediate)": "Michael",
+        "DJ": "Jessica",
+        "Closing": "Kyle",
     },
     # second week
     {
         # "First Door Shift": "Colby",
+        "Teaching (intermediate)": "Michael",
+        "DJ": "Geoff",
+        "Closing": "Colby",
     },
     # third week
     {
         # "First Door Shift": "Colby",
+        "Teaching (intermediate)": "Michael",
+        "DJ": "Geoff",
+        "Closing": "Colby",
     },
-    # fouth week
+    # fourth week
     {
+        "Teaching (intermediate)": "Michael",
+        "Closing": "Colby",
     },
     # possible fifth week
     {
@@ -75,8 +84,8 @@ VOLUNTEER_OPTIONS = pd.read_csv(
     keep_default_na=False)
 
 
-class CounterOverflowError(RuntimeError):
-    """Error when there have been too many itterations."""
+class NoneAvailableError(RuntimeError):
+    """Error when there is no one available at a position."""
 
 
 # pylint: disable=too-many-instance-attributes
@@ -89,11 +98,11 @@ class VolunteerPositions:
         """
         Initialize the data.
         """
-        first_of_month = datetime.datetime(year, month, 1)
+        first_of_month = dt.datetime(year, month, 1)
         num_days = calendar.monthrange(year, month)[1]
         self.thursdays = [
-            first_of_month + datetime.timedelta(n) for n in range(num_days)
-            if (first_of_month + datetime.timedelta(n)).weekday() == 3
+            first_of_month + dt.timedelta(n) for n in range(num_days)
+            if (first_of_month + dt.timedelta(n)).weekday() == 3
             ]
         self.num_thursdays = len(self.thursdays)
         self.skip_week = skip_week
@@ -101,109 +110,135 @@ class VolunteerPositions:
 
         # the list of weeks of what everyone is doing
         self.week_list = cp.deepcopy(volunteered)
-
         # dictionary containing dictionaries per person of what they can do
         self.vol_dict = {}
         # dictionary containing the number of time a person did something
         self.vol_num = {}
-        # list containing name of every person
-        self.name_list = []
-        # the number of times anyone is chosen for any job
-        self.counter = 0
-        # the week number
-        self.week_num = 0
-
+        # the duties to fill
+        self.duties = []
         # dictionary containing a list of who can do each item
         self.duty_dict = {}
-        for d_name in volunteer_options.columns:
-            self.duty_dict[d_name] = []
-        self.duty_dict["Max weeks per month"] = {}
+        # dictionary containing the max number of weeks a person can volunteer per month
+        self.max_weeks_per_month = {}
 
-        for name, val in volunteer_options.iterrows():
-            self.name_list.append(name)
-            self.vol_dict[name] = {}
+        for duty_name in volunteer_options.columns:
+            if duty_name != "Max weeks per month":
+                self.duties.append(duty_name)
+
+        for name, row in volunteer_options.iterrows():
+            self.vol_dict[name] = []
             self.vol_num[name] = 0
-            for d_name, duty in val.iteritems():
-                if d_name[:7] == "Unnamed":
-                    continue
+            for duty_name, entry in row.iteritems():
+                if duty_name == "Max weeks per month":
+                    self.max_weeks_per_month[name] = entry
+                elif entry != "":
+                    self.vol_dict[name].append(duty_name)
 
-                if d_name == "Max weeks per month":
-                    self.duty_dict[d_name][name] = duty
-                    continue
+        for week_vol in volunteered:
+            for name in week_vol.values():
+                self.vol_num[name] += 1
 
-                if duty == "":
-                    self.vol_dict[name][d_name] = False
-                else:
-                    self.vol_dict[name][d_name] = True
-                    self.duty_dict[d_name].append(name)
 
-    def find_name(self, position):
+
+    def update_duty_dict(self, week_num):
+        """
+        """
+        self.reset_duty_dict()
+        self.remove_volunteers(week_num)
+        self.remove_gone(week_num)
+        self.remove_max_volunteered()
+
+    def reset_duty_dict(self):
+        """
+        """
+        # Reset duty_dict
+        self.duty_dict = {}
+        for duty_name in self.duties:
+            self.duty_dict[duty_name] = []
+            for name, duty_list in self.vol_dict.items():
+                if duty_name in duty_list:
+                    self.duty_dict[duty_name].append(name)
+
+    def remove_volunteers(self, week_num):
+        """
+        """
+        for available_list in self.duty_dict.values():
+            for volunteer in self.week_list[week_num].values():
+                try:
+                    available_list.remove(volunteer)
+                except ValueError:
+                    pass
+
+
+    def remove_gone(self, week_num):
+        """
+        """
+        for available_list in self.duty_dict.values():
+            for volunteer, gone_weeks in self.gone.items():
+                if week_num in gone_weeks:
+                    try:
+                        available_list.remove(volunteer)
+                    except ValueError:
+                        pass
+
+    def remove_max_volunteered(self):
+        """
+        """
+        for available_list in self.duty_dict.values():
+            for volunteer, max_weeks in self.max_weeks_per_month.items():
+                if self.vol_num[volunteer] >= max_weeks:
+                    try:
+                        available_list.remove(volunteer)
+                    except ValueError:
+                        pass
+
+    def remove_name_from_duties(self, name):
+        """
+        """
+        for available_list in self.duty_dict.values():
+            try:
+                available_list.remove(name)
+            except ValueError:
+                pass
+
+    def assign_name(self, position, week_num):
         """
         Randomly finds a name for the given position.
         """
-        name = "default"
+        # Only add if someone hasn't volunteered
+        if position not in self.week_list[week_num]:
+            if not self.duty_dict[position]:
+                raise NoneAvailableError(f"No one is available for {position} at week {week_num}, {self.week_list}")
 
-        # check if someone already volunteered
-        if position in self.week_list[self.week_num]:
-            name = self.week_list[self.week_num][position]
-            if self.counter > 100:
-                print(f"Week {self.week_num}: {name} at {position}")
-                raise CounterOverflowError(f"counter = {self.counter}")
+            name = rd.choice(self.duty_dict[position])
+            self.week_list[week_num][position] = name
 
-            if self.vol_num[name] >= self.duty_dict["Max weeks per month"][name]:
-                print(f"Week {self.week_num}: {name} at {position}")
-                raise CounterOverflowError(f"counter = {self.counter}")
-            self.counter += 1
+            self.vol_num[name] += 1
+            self.remove_name_from_duties(name)
 
-        else:
-            while (name == "default"
-                   # exceed weeks per month
-                   or (self.vol_num[name] >=
-                       self.duty_dict["Max weeks per month"][name])
-                   # person gone this week
-                   or (name in self.gone and self.week_num in self.gone[name])):
-
-                if self.counter > 1000:
-                    print(f"Week {self.week_num}: {name} at {position}")
-                    raise CounterOverflowError(f"counter = {self.counter}")
-                self.counter += 1
-                name = rd.choice(self.duty_dict[position])
-
-            self.week_list[self.week_num][position] = name
-
-        self.vol_num[name] += 1
-        if name not in self.gone:
-            self.gone[name] = []
-        self.gone[name].append(self.week_num)
-        return name
 
     def find_people(self):
         """
         Find people for each option for each week of the month.
         """
         positions_to_add = [
-            "Teaching (intermediate)",
-            "Closing",
-            "DJ",
-            "Teaching (lead)",
-            "Teaching (follow)",
+            # "Teaching (intermediate)",
             "First Door Shift",
+            "Teaching (follow)",
+            "DJ",
+            "Closing",
+            "Teaching (lead)",
             ]
 
-        for week_num in range(self.num_thursdays + 1):
-            if week_num in self.skip_week:
-                continue
-            self.week_num = week_num
-            if week_num < self.num_thursdays:
+        for week_num in range(self.num_thursdays):
+            if week_num not in self.skip_week:
+                self.update_duty_dict(week_num)
                 for position in positions_to_add:
-                    self.find_name(position)
-                # # put lead and follow together
-                # self.week_list[week_num]["Teaching"] = (
-                #     f"{self.week_list[week_num]['Teaching (lead)']} and "
-                #     f"{self.week_list[week_num]['Teaching (follow)']}")
-            else:
-                # add Facebook person
-                self.find_name("Facebook Events")
+                    self.assign_name(position, week_num)
+
+        # add Facebook person
+        self.reset_duty_dict()
+        self.assign_name("Facebook Events", self.num_thursdays)
 
     # pylint: disable=too-many-branches
     def add_to_spreadsheet(self):
@@ -298,8 +333,9 @@ def main():
             vol_pos.find_people()
             vol_pos.add_to_spreadsheet()
             break
-        except CounterOverflowError as err:
-            print(repr(err))
+        except NoneAvailableError as err:
+            print(err.args[0], "\n")
+            time.sleep(.25)
 
 
 if __name__ == "__main__":
