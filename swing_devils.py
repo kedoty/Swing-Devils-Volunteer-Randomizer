@@ -9,7 +9,7 @@ import random as rd
 import time
 
 YEAR = 2022
-MONTH = 10
+MONTH = 11
 
 # which week to skip and why
 # SKIP_WEEK = {
@@ -19,7 +19,7 @@ SKIP_WEEK = {
     # 0: "",
     # 1: "",
     # 2: "",
-    # 3: "",
+    3: "Thanksgiving",
     # 4: "",
     }
 
@@ -29,10 +29,7 @@ SKIP_WEEK = {
 #    "Geoff": [1],
 #    }
 GONE = {
-    "Christy": [0,2],
-    "Edina": [3],
-    "Kyle": [1,2,3],
-    "Jessica": [1,2,3],
+    "Colby": [1],
     }
 
 # Geoff has volunteered to the second week
@@ -48,27 +45,17 @@ VOLUNTEERED = [
     # first week
     {
         "Teaching (intermediate)": "Michael",
-        "DJ": "Jessica",
-        "Closing": "Kyle",
     },
     # second week
     {
-        # "First Door Shift": "Colby",
         "Teaching (intermediate)": "Michael",
-        "DJ": "Geoff",
-        "Closing": "Colby",
     },
     # third week
     {
-        # "First Door Shift": "Colby",
         "Teaching (intermediate)": "Michael",
-        "DJ": "Geoff",
-        "Closing": "Colby",
     },
     # fourth week
     {
-        "Teaching (intermediate)": "Michael",
-        "Closing": "Colby",
     },
     # possible fifth week
     {
@@ -285,7 +272,7 @@ class VolunteerPositions:
             # check to see if this week should be skipped
             if week_num in self.skip_week:
                 if self.skip_week[week_num]:
-                    volunteer_spreadsheet[col][row + 14] = self.skip_week[week_num]
+                    volunteer_spreadsheet[col][row + 15] = self.skip_week[week_num]
                 continue
 
             # find the offset to add the specific pos
