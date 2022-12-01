@@ -9,50 +9,58 @@ import random as rd
 import time
 
 YEAR = 2022
-MONTH = 11
+MONTH = 12
 
 # which week to skip and why
 # SKIP_WEEK = {
 #     3: "Thanksgiving",
-#     }
+# }
 SKIP_WEEK = {
     # 0: "",
     # 1: "",
     # 2: "",
-    3: "Thanksgiving",
-    # 4: "",
-    }
+    3: "Winter Break",
+    4: "Winter Break",
+}
 
 # Kyle is gone weeks 3 and 5, Geoff is gone week 2
 # GONE = {
-#    "Kyle": [2,4],
-#    "Geoff": [1],
-#    }
+#     "Kyle": [2,4],
+#     "Geoff": [1],
+# }
 GONE = {
-    "Colby": [1],
-    }
+    "Colby": [2],
+    "Geoff": [2],
+    "Nam": [2],
+}
 
 # Geoff has volunteered to the second week
 # volunteered = [
-#    {},
-#    {"DJ": "Geoff"},
-#    {},
-#    {},
-#    {},
-#    {},
-#    ]
+#     {},
+#     {"DJ": "Geoff"},
+#     {},
+#     {},
+#     {},
+#     {},
+# ]
 VOLUNTEERED = [
     # first week
     {
-        "Teaching (intermediate)": "Michael",
+        "Teaching (intermediate)": "Geoff",
+        "DJ": "Geoff",
     },
     # second week
     {
-        "Teaching (intermediate)": "Michael",
+        "Teaching (lead)": "Jedediah",
+        "Teaching (intermediate)": "Geoff",
+        "DJ": "Geoff",
     },
     # third week
     {
+        "First Door Shift": "Mariah",
         "Teaching (intermediate)": "Michael",
+        "DJ": "Mariah",
+        "Closing": "Michael",
     },
     # fourth week
     {
@@ -62,7 +70,7 @@ VOLUNTEERED = [
     },
     # facebook
     {},
-    ]
+]
 
 VOLUNTEER_OPTIONS = pd.read_csv(
     "swing_devils_vol.csv",
@@ -79,38 +87,88 @@ class NoneAvailableError(RuntimeError):
 class VolunteerPositions:
     """Class that holds and finds the volunteers for each week."""
 
+    skip_week_key = "skip"
+    facebook_key = "Facebook Events"
+
+    row_offset_dict = {
+        "First Door Shift": 2,
+        "Teaching (lead)": 5,
+        "Teaching (follow)": 6,
+        "Teaching (intermediate)": 7,
+        "DJ": 10,
+        "Closing": 13,
+        skip_week_key: 15,
+        facebook_key: 0,
+    }
+
+    duties_to_not_assign = (
+        facebook_key,
+        # "Teaching (intermediate)",
+    )
+
+    col_row_list = (
+        (1, 0),
+        (4, 0),
+        (1, 18),
+        (4, 18),
+        (1, 36),
+        (8, 20), # Facebook entry
+    )
+
+
     # pylint: disable=too-many-arguments
     def __init__(self, year, month, skip_week,
                  gone, volunteered, volunteer_options):
         """
         Initialize the data.
         """
+        # list containing which Thursdays are in the month
         first_of_month = dt.datetime(year, month, 1)
         num_days = calendar.monthrange(year, month)[1]
+        thursday_weekday = 3
         self.thursdays = [
-            first_of_month + dt.timedelta(n) for n in range(num_days)
-            if (first_of_month + dt.timedelta(n)).weekday() == 3
-            ]
-        self.num_thursdays = len(self.thursdays)
-        self.skip_week = skip_week
-        self.gone = cp.deepcopy(gone)
+            first_of_month + dt.timedelta(n)
+            for n in range(num_days)
+            if (first_of_month + dt.timedelta(n)).weekday() == thursday_weekday
+        ]
+
+        # dictionary containing who is gone which weeks
+        self.gone = gone
+
+        # the list of which week numbers to schedule
+        self.week_num_list = [
+            week_num
+            for week_num in range(len(self.thursdays))
+            if week_num not in skip_week
+        ]
 
         # the list of weeks of what everyone is doing
         self.week_list = cp.deepcopy(volunteered)
+        for skip_week_num, skip_reason in skip_week.items():
+            self.week_list[skip_week_num][self.skip_week_key] = skip_reason
+
+        # all available duties
+        self.duties = [
+            duty_name
+            for duty_name in self.row_offset_dict.keys()
+            if duty_name != self.skip_week_key
+        ]
+
+        # the duties to fill
+        self.duties_to_assign = [
+            duty_name
+            for duty_name in self.duties
+            if duty_name not in self.duties_to_not_assign
+        ]
+
         # dictionary containing dictionaries per person of what they can do
         self.vol_dict = {}
+
         # dictionary containing the number of time a person did something
         self.vol_num = {}
-        # the duties to fill
-        self.duties = []
-        # dictionary containing a list of who can do each item
-        self.duty_dict = {}
+
         # dictionary containing the max number of weeks a person can volunteer per month
         self.max_weeks_per_month = {}
-
-        for duty_name in volunteer_options.columns:
-            if duty_name != "Max weeks per month":
-                self.duties.append(duty_name)
 
         for name, row in volunteer_options.iterrows():
             self.vol_dict[name] = []
@@ -125,6 +183,8 @@ class VolunteerPositions:
             for name in week_vol.values():
                 self.vol_num[name] += 1
 
+        # dictionary containing a list of who can do each item
+        self.duty_dict = {}
 
 
     def update_duty_dict(self, week_num):
@@ -208,26 +268,54 @@ class VolunteerPositions:
         """
         Find people for each option for each week of the month.
         """
-        positions_to_add = [
-            # "Teaching (intermediate)",
-            "First Door Shift",
-            "Teaching (follow)",
-            "DJ",
-            "Closing",
-            "Teaching (lead)",
-            ]
+        shuffled_week_num = rd.sample(self.week_num_list, k=len(self.week_num_list))
+        for week_num in shuffled_week_num:
+            self.update_duty_dict(week_num)
 
-        for week_num in range(self.num_thursdays):
-            if week_num not in self.skip_week:
-                self.update_duty_dict(week_num)
-                for position in positions_to_add:
-                    self.assign_name(position, week_num)
+            shuffled_duties = rd.sample(self.duties_to_assign, k=len(self.duties_to_assign))
+            for position in shuffled_duties:
+                self.assign_name(position, week_num)
 
         # add Facebook person
         self.reset_duty_dict()
-        self.assign_name("Facebook Events", self.num_thursdays)
+        self.assign_name(self.facebook_key, -1)
 
-    # pylint: disable=too-many-branches
+
+    def add_second_friday(self, volunteer_spreadsheet):
+        """
+        Add the second Friday to the volunteer spreadsheet
+        """
+        if self.thursdays[0].day == 7:
+            friday = 8
+        else:
+            friday = self.thursdays[1].day + 1
+        volunteer_spreadsheet[8][0] = f"{MONTH}/{friday}/{YEAR}"
+
+    def add_volunteer_week(self, volunteer_spreadsheet, week_num, week):
+        """
+        """
+        # Get the column and row information
+        try:
+            col, row = self.col_row_list[week_num]
+        except IndexError:
+            raise RuntimeError("too many weeks???")
+
+        # Add the date
+        volunteer_spreadsheet[col][row] = f"{self.thursdays[week_num]:%m/%d/%Y}"
+
+        # Add the information (if not skipped)
+        skip_row_offset = self.row_offset_dict[self.skip_week_key]
+        try:
+            volunteer_spreadsheet[col][row + skip_row_offset] = week[self.skip_week_key]
+        except KeyError:
+            for position, name in week.items():
+                try:
+                    row_offset = self.row_offset_dict[position]
+                except KeyError:
+                    raise RuntimeError("Bad Position")
+
+                volunteer_spreadsheet[col][row + row_offset] = name
+
     def add_to_spreadsheet(self):
         """
         Add dates and people to the spreadsheet
@@ -237,67 +325,16 @@ class VolunteerPositions:
             header=None,
             keep_default_na=False)
 
-        # find second friday
-        if self.thursdays[0].day == 7:
-            friday = 8
-        else:
-            friday = self.thursdays[1].day + 1
-        volunteer_spreadsheet[8][0] = f"{MONTH}/{friday}/{YEAR}"
+        self.add_second_friday(volunteer_spreadsheet)
 
         # go through all the weeks (except the extras)
-        # the "week" after contains the facebook job
-        for week_num, week in enumerate(self.week_list[:self.num_thursdays]):
-            # find row and col of where to add the date and people
-            if week_num == 0:
-                col = 1
-                row = 0
-            elif week_num == 1:
-                col = 4
-                row = 0
-            elif week_num == 2:
-                col = 1
-                row = 18
-            elif week_num == 3:
-                col = 4
-                row = 18
-            elif week_num == 4:
-                col = 1
-                row = 36
-            else:
-                raise RuntimeError("too many weeks???")
-
-            # add the date
-            volunteer_spreadsheet[col][row] = f"{self.thursdays[week_num]:%m/%d/%Y}"
-
-            # check to see if this week should be skipped
-            if week_num in self.skip_week:
-                if self.skip_week[week_num]:
-                    volunteer_spreadsheet[col][row + 15] = self.skip_week[week_num]
-                continue
-
-            # find the offset to add the specific pos
-            for position, name in week.items():
-                if position == "First Door Shift":
-                    row_add = 2
-                elif position == "Teaching (lead)":
-                    row_add = 5
-                elif position == "Teaching (follow)":
-                    row_add = 6
-                elif position == "Teaching (intermediate)":
-                    row_add = 7
-                elif position == "DJ":
-                    row_add = 10
-                elif position == "Closing":
-                    row_add = 13
-                else:
-                    raise RuntimeError("Bad Position")
-
-                # add the person
-                volunteer_spreadsheet[col][row + row_add] = name
+        # the last "week" contains the facebook job
+        for week_num, week in enumerate(self.week_list[:-1]):
+            self.add_volunteer_week(volunteer_spreadsheet, week_num, week)
 
         # add the facebook position
-        volunteer_spreadsheet[8][20] = self.week_list[
-            self.num_thursdays]["Facebook Events"]
+        col, row = self.col_row_list[-1]
+        volunteer_spreadsheet[col][row] = self.week_list[-1][self.facebook_key]
 
         # output the schedule as a csv file
         out_name = f"swing_devils_out_{YEAR}_{MONTH:02}.csv"

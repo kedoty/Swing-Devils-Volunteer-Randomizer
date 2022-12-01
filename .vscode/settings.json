@@ -4,5 +4,6 @@
     ],
     "cSpell.enableFiletypes": [
         "csv"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "basic"
 }
