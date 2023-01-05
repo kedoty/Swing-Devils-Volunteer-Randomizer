@@ -8,8 +8,8 @@ import pandas as pd
 import random as rd
 import time
 
-YEAR = 2022
-MONTH = 12
+YEAR = 2023
+MONTH = 1
 
 # which week to skip and why
 # SKIP_WEEK = {
@@ -19,19 +19,19 @@ SKIP_WEEK = {
     # 0: "",
     # 1: "",
     # 2: "",
-    3: "Winter Break",
-    4: "Winter Break",
+    # 3: "Winter Break",
+    # 4: "Winter Break",
 }
 
 # Kyle is gone weeks 3 and 5, Geoff is gone week 2
 # GONE = {
-#     "Kyle": [2,4],
-#     "Geoff": [1],
+#     "Kyle": [3,5],
+#     "Geoff": [2],
 # }
 GONE = {
-    "Colby": [2],
-    "Geoff": [2],
-    "Nam": [2],
+    "Colby": [1],
+    "Geoff": [1],
+    "Mariah": [4],
 }
 
 # Geoff has volunteered to the second week
@@ -46,30 +46,32 @@ GONE = {
 VOLUNTEERED = [
     # first week
     {
-        "Teaching (intermediate)": "Geoff",
-        "DJ": "Geoff",
+        "First Door Shift": "Mariah",
+        "Teaching (lead)": "Michael",
+        "Teaching (follow)": "Christy",
+        "Teaching (intermediate)": "Jedediah",
+        "Closing": "Michael",
     },
     # second week
     {
-        "Teaching (lead)": "Jedediah",
-        "Teaching (intermediate)": "Geoff",
-        "DJ": "Geoff",
+        "Teaching (intermediate)": "Jedediah",
     },
     # third week
     {
-        "First Door Shift": "Mariah",
-        "Teaching (intermediate)": "Michael",
-        "DJ": "Mariah",
-        "Closing": "Michael",
+        "Teaching (intermediate)": "Kyle",
+        "Teaching (lead)": "Geoff",
+        "DJ": "Geoff",
     },
     # fourth week
     {
+        "Teaching (intermediate)": "Kyle",
     },
     # possible fifth week
     {
     },
     # facebook
-    {},
+    {
+    },
 ]
 
 VOLUNTEER_OPTIONS = pd.read_csv(
@@ -125,11 +127,11 @@ class VolunteerPositions:
         # list containing which Thursdays are in the month
         first_of_month = dt.datetime(year, month, 1)
         num_days = calendar.monthrange(year, month)[1]
-        thursday_weekday = 3
+        THURSDAY_WEEKDAY = 3
         self.thursdays = [
             first_of_month + dt.timedelta(n)
             for n in range(num_days)
-            if (first_of_month + dt.timedelta(n)).weekday() == thursday_weekday
+            if (first_of_month + dt.timedelta(n)).weekday() == THURSDAY_WEEKDAY
         ]
 
         # dictionary containing who is gone which weeks
@@ -180,7 +182,7 @@ class VolunteerPositions:
                     self.vol_dict[name].append(duty_name)
 
         for week_vol in volunteered:
-            for name in week_vol.values():
+            for name in set(week_vol.values()):
                 self.vol_num[name] += 1
 
         # dictionary containing a list of who can do each item
@@ -222,7 +224,7 @@ class VolunteerPositions:
         """
         for available_list in self.duty_dict.values():
             for volunteer, gone_weeks in self.gone.items():
-                if week_num in gone_weeks:
+                if (week_num + 1) in gone_weeks:
                     try:
                         available_list.remove(volunteer)
                     except ValueError:
@@ -255,7 +257,7 @@ class VolunteerPositions:
         # Only add if someone hasn't volunteered
         if position not in self.week_list[week_num]:
             if not self.duty_dict[position]:
-                raise NoneAvailableError(f"No one is available for {position} at week {week_num}, {self.week_list}")
+                raise NoneAvailableError(f"No one is available for {position} at week {week_num + 1}, {self.week_list}")
 
             name = rd.choice(self.duty_dict[position])
             self.week_list[week_num][position] = name
@@ -294,6 +296,10 @@ class VolunteerPositions:
     def add_volunteer_week(self, volunteer_spreadsheet, week_num, week):
         """
         """
+        # Early return if not a valid Thursday
+        if week_num >= len(self.thursdays):
+            return
+
         # Get the column and row information
         try:
             col, row = self.col_row_list[week_num]
