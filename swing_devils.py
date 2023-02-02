@@ -9,7 +9,7 @@ import random as rd
 import time
 
 YEAR = 2023
-MONTH = 1
+MONTH = 2
 
 # which week to skip and why
 # SKIP_WEEK = {
@@ -31,7 +31,7 @@ SKIP_WEEK = {
 GONE = {
     "Colby": [1],
     "Geoff": [1],
-    "Mariah": [4],
+    "Christy": [0],
 }
 
 # Geoff has volunteered to the second week
@@ -46,25 +46,19 @@ GONE = {
 VOLUNTEERED = [
     # first week
     {
-        "First Door Shift": "Mariah",
-        "Teaching (lead)": "Michael",
-        "Teaching (follow)": "Christy",
-        "Teaching (intermediate)": "Jedediah",
-        "Closing": "Michael",
+        "Teaching (intermediate)": "",
     },
     # second week
     {
-        "Teaching (intermediate)": "Jedediah",
+        "Teaching (intermediate)": "",
     },
     # third week
     {
-        "Teaching (intermediate)": "Kyle",
-        "Teaching (lead)": "Geoff",
-        "DJ": "Geoff",
+        "Teaching (intermediate)": "",
     },
     # fourth week
     {
-        "Teaching (intermediate)": "Kyle",
+        "Teaching (intermediate)": "",
     },
     # possible fifth week
     {
@@ -183,7 +177,8 @@ class VolunteerPositions:
 
         for week_vol in volunteered:
             for name in set(week_vol.values()):
-                self.vol_num[name] += 1
+                if name:
+                    self.vol_num[name] += 1
 
         # dictionary containing a list of who can do each item
         self.duty_dict = {}
