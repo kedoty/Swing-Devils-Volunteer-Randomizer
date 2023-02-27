@@ -9,7 +9,7 @@ import random as rd
 import time
 
 YEAR = 2023
-MONTH = 2
+MONTH = 3
 
 # which week to skip and why
 # SKIP_WEEK = {
@@ -31,7 +31,6 @@ SKIP_WEEK = {
 GONE = {
     "Colby": [1],
     "Geoff": [1],
-    "Christy": [0],
 }
 
 # Geoff has volunteered to the second week
@@ -46,22 +45,25 @@ GONE = {
 VOLUNTEERED = [
     # first week
     {
-        "Teaching (intermediate)": "",
+        "Teaching (intermediate)": "Alex",
     },
     # second week
     {
-        "Teaching (intermediate)": "",
+        "Teaching (intermediate)": "Alex",
+        "DJ": "Jessica",
+        "Closing": "Kyle",
     },
     # third week
     {
-        "Teaching (intermediate)": "",
+        "Teaching (intermediate)": "Alex",
     },
     # fourth week
     {
-        "Teaching (intermediate)": "",
+        "Teaching (intermediate)": "Alex",
     },
     # possible fifth week
     {
+        "Teaching (intermediate)": "Alex",
     },
     # facebook
     {
