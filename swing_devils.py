@@ -204,7 +204,10 @@ class VolunteerPositions:
         for week_vol in volunteered:
             for name in set(week_vol.values()):
                 if name:
-                    self.vol_num[name] += 1
+                    try:
+                        self.vol_num[name] += 1
+                    except KeyError:
+                        pass
 
         # dictionary containing a list of who can do each item
         self.duty_dict: Dict[str, List[str]] = {}
