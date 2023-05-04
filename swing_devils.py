@@ -11,7 +11,7 @@ import time
 from typing import Dict, List, Tuple
 
 YEAR = 2023
-MONTH = 4
+MONTH = 5
 
 # which week to skip and why
 # SKIP_WEEK = {
@@ -31,9 +31,9 @@ SKIP_WEEK: Dict[int, str] = {
 #     "Geoff": (2,),
 # }
 GONE: Dict[str, Tuple[int, ...]] = {
-    "Christy": (1,),
-    "Bear": (2,),
-    "Geoff": (3, 4),
+    "Colby": (4,),
+    "Michael": (2,),
+    "Mariah": (1,3),
 }
 
 # Geoff has volunteered to the second week
@@ -55,23 +55,23 @@ VOLUNTEERED: Tuple[
 ] = (
     {
         # first week
-        "Teaching (intermediate)": "Maureen and Kenny",
-        "DJ": "Geoff",
+        "Teaching (intermediate)": "Colby",
         "Closing": "Colby",
     },
     {
         # second week
-        "Teaching (intermediate)": "Maureen and Kenny",
+        "Teaching (intermediate)": "Colby",
+        "Closing": "Kyle"
     },
     {
         # third week
-        "Teaching (intermediate)": "Maureen and Kenny",
-        "DJ": "Jessica",
-        "Closing": "Kyle",
+        "Teaching (intermediate)": "Colby",
+        "DJ": "Colby",
     },
     {
         # fourth week
-        "Teaching (intermediate)": "Maureen and Kenny",
+        # "Teaching (intermediate)": "Colby",
+        "First Door Shift": "Bear",
     },
     {
         # possible fifth week
