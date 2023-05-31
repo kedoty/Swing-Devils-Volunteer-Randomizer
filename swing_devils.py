@@ -7,22 +7,23 @@ import copy as cp
 import pandas as pd
 import random as rd
 import time
+import sys
 
 from typing import Dict, List, Tuple
 
 YEAR = 2023
-MONTH = 5
+MONTH = 6
 
 # which week to skip and why
 # SKIP_WEEK = {
-#     3: "Thanksgiving",
+#     4: "Thanksgiving",
 # }
 SKIP_WEEK: Dict[int, str] = {
-    # 0: "",
     # 1: "",
-    # 2: "",
-    # 3: "Winter Break",
-    # 4: "Winter Break",
+    2: "",
+    # 3: "",
+    4: "",
+    5: "",
 }
 
 # Kyle is gone weeks 3 and 5, Geoff is gone week 2
@@ -31,9 +32,7 @@ SKIP_WEEK: Dict[int, str] = {
 #     "Geoff": (2,),
 # }
 GONE: Dict[str, Tuple[int, ...]] = {
-    "Colby": (4,),
-    "Michael": (2,),
-    "Mariah": (1,3),
+    "Christy": (1,),
 }
 
 # Geoff has volunteered to the second week
@@ -54,30 +53,27 @@ VOLUNTEERED: Tuple[
     Dict[str, str],
 ] = (
     {
+        # facebook
+    },
+    {
         # first week
-        "Teaching (intermediate)": "Colby",
-        "Closing": "Colby",
+        # "Teaching (intermediate)": "Colby",
+        "Closing": "Kyle",
     },
     {
         # second week
-        "Teaching (intermediate)": "Colby",
-        "Closing": "Kyle"
+        # "Teaching (intermediate)": "Colby",
     },
     {
         # third week
-        "Teaching (intermediate)": "Colby",
-        "DJ": "Colby",
+        # "Teaching (intermediate)": "Colby",
     },
     {
         # fourth week
         # "Teaching (intermediate)": "Colby",
-        "First Door Shift": "Bear",
     },
     {
         # possible fifth week
-    },
-    {
-        # facebook
     },
 )
 
@@ -114,12 +110,12 @@ class VolunteerPositions:
     )
 
     col_row_list = (
+        (8, 20),  # Facebook entry
         (1, 0),
         (4, 0),
         (1, 18),
         (4, 18),
         (1, 36),
-        (8, 20),  # Facebook entry
     )
 
     # pylint: disable=too-many-arguments
@@ -157,9 +153,9 @@ class VolunteerPositions:
 
         # the list of which week numbers to schedule
         self.week_num_list = [
-            week_num
+            week_num + 1
             for week_num in range(len(self.thursdays))
-            if week_num not in skip_week
+            if week_num + 1 not in skip_week
         ]
 
         # the list of weeks of what everyone is doing
@@ -194,7 +190,7 @@ class VolunteerPositions:
             name = str(name)
             self.vol_dict[name] = []
             self.vol_num[name] = 0
-            for duty_name, entry in row.iteritems():
+            for duty_name, entry in row.items():
                 duty_name = str(duty_name)
                 if duty_name == "Max weeks per month":
                     self.max_weeks_per_month[name] = int(entry)
@@ -246,7 +242,7 @@ class VolunteerPositions:
         """Remove everyone who says they will be gone in the given week."""
         for available_list in self.duty_dict.values():
             for volunteer, gone_weeks in self.gone.items():
-                if (week_num + 1) in gone_weeks:
+                if week_num in gone_weeks:
                     try:
                         available_list.remove(volunteer)
                     except ValueError:
@@ -276,7 +272,7 @@ class VolunteerPositions:
         if position not in self.week_list[week_num]:
             if not self.duty_dict[position]:
                 raise NoneAvailableError(
-                    f"No one is available for {position} at week {week_num + 1}, {self.week_list}"
+                    f"No one is available for {position} at week {week_num}, {self.week_list}"
                 )
 
             name = rd.choice(self.duty_dict[position])
@@ -299,7 +295,7 @@ class VolunteerPositions:
 
         # add Facebook person
         self.reset_duty_dict()
-        self.assign_name(self.facebook_key, -1)
+        self.assign_name(self.facebook_key, 0)
 
     def add_second_friday(self, volunteer_spreadsheet: pd.DataFrame) -> None:
         """Add the second Friday to the volunteer spreadsheet."""
@@ -314,7 +310,7 @@ class VolunteerPositions:
     ) -> None:
         """Adds the given week to the spreadsheet."""
         # Early return if not a valid Thursday
-        if week_num >= len(self.thursdays):
+        if week_num > len(self.thursdays):
             return
 
         # Get the column and row information
@@ -324,13 +320,15 @@ class VolunteerPositions:
             raise RuntimeError("too many weeks???")
 
         # Add the date
-        volunteer_spreadsheet[col][row] = f"{self.thursdays[week_num]:%m/%d/%Y}"
+        volunteer_spreadsheet[col][row] = f"{self.thursdays[week_num-1]:%m/%d/%Y}"
 
         # Add the information (if not skipped)
         skip_row_offset = self.row_offset_dict[self.skip_week_key]
         try:
+            # Assume the week was skipped
             volunteer_spreadsheet[col][row + skip_row_offset] = week[self.skip_week_key]
         except KeyError:
+            # Add positions for week that was not skipped
             for position, name in week.items():
                 try:
                     row_offset = self.row_offset_dict[position]
@@ -351,12 +349,12 @@ class VolunteerPositions:
 
         # Go through all the weeks (except the extras)
         # the last "week" contains the facebook job.
-        for week_num, week in enumerate(self.week_list[:-1]):
-            self.add_volunteer_week(volunteer_spreadsheet, week_num, week)
+        for week_num, week in enumerate(self.week_list[1:]):
+            self.add_volunteer_week(volunteer_spreadsheet, week_num + 1, week)
 
         # Add the facebook position.
-        col, row = self.col_row_list[-1]
-        volunteer_spreadsheet[col][row] = self.week_list[-1][self.facebook_key]
+        col, row = self.col_row_list[0]
+        volunteer_spreadsheet[col][row] = self.week_list[0][self.facebook_key]
 
         # Output the schedule as a csv file.
         out_name = f"swing_devils_out_{YEAR}_{MONTH:02}.csv"
