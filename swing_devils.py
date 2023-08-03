@@ -12,7 +12,7 @@ import sys
 from typing import Dict, List, Tuple
 
 YEAR = 2023
-MONTH = 6
+MONTH = 8
 
 # which week to skip and why
 # SKIP_WEEK = {
@@ -20,10 +20,10 @@ MONTH = 6
 # }
 SKIP_WEEK: Dict[int, str] = {
     # 1: "",
-    2: "",
+    # 2: "",
     # 3: "",
-    4: "",
-    5: "",
+    # 4: "",
+    # 5: "",
 }
 
 # Kyle is gone weeks 3 and 5, Geoff is gone week 2
@@ -31,9 +31,7 @@ SKIP_WEEK: Dict[int, str] = {
 #     "Kyle": (3,5),
 #     "Geoff": (2,),
 # }
-GONE: Dict[str, Tuple[int, ...]] = {
-    "Christy": (1,),
-}
+GONE: Dict[str, Tuple[int, ...]] = {}
 
 # Geoff has volunteered to the second week
 # volunteered = (
@@ -58,7 +56,6 @@ VOLUNTEERED: Tuple[
     {
         # first week
         # "Teaching (intermediate)": "Colby",
-        "Closing": "Kyle",
     },
     {
         # second week
@@ -194,6 +191,11 @@ class VolunteerPositions:
                 duty_name = str(duty_name)
                 if duty_name == "Max weeks per month":
                     self.max_weeks_per_month[name] = int(entry)
+                    if (
+                        len(self.week_num_list) > 4
+                        and self.max_weeks_per_month[name] > 0
+                    ):
+                        self.max_weeks_per_month[name] += 1
                 elif str(entry):
                     self.vol_dict[name].append(duty_name)
 
