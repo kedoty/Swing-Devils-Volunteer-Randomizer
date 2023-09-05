@@ -4,15 +4,16 @@ Script to modify the Swing Devils volunteer sheet.
 import calendar
 import datetime as dt
 import copy as cp
-import pandas as pd
 import random as rd
 import time
-import sys
 
 from typing import Dict, List, Tuple
 
+import pandas as pd
+
+
 YEAR = 2023
-MONTH = 8
+MONTH = 9
 
 # which week to skip and why
 # SKIP_WEEK = {
@@ -31,7 +32,11 @@ SKIP_WEEK: Dict[int, str] = {
 #     "Kyle": (3,5),
 #     "Geoff": (2,),
 # }
-GONE: Dict[str, Tuple[int, ...]] = {}
+GONE: Dict[str, Tuple[int, ...]] = {
+    # "Kyle": (1,),
+    "Jessica": (1,),
+    "Bear": (1,),
+}
 
 # Geoff has volunteered to the second week
 # volunteered = (
@@ -52,22 +57,23 @@ VOLUNTEERED: Tuple[
 ] = (
     {
         # facebook
+        "Facebook Events": "Christy",
     },
     {
         # first week
-        # "Teaching (intermediate)": "Colby",
+        "Teaching (intermediate)": "Michael",
     },
     {
         # second week
-        # "Teaching (intermediate)": "Colby",
+        "Teaching (intermediate)": "Michael",
     },
     {
         # third week
-        # "Teaching (intermediate)": "Colby",
+        "Teaching (intermediate)": "Michael",
     },
     {
         # fourth week
-        # "Teaching (intermediate)": "Colby",
+        "Teaching (intermediate)": "Michael",
     },
     {
         # possible fifth week
@@ -77,6 +83,8 @@ VOLUNTEERED: Tuple[
 VOLUNTEER_OPTIONS: pd.DataFrame = pd.read_csv(
     "swing_devils_vol.csv", header=0, index_col=0, keep_default_na=False
 )
+
+THURSDAY_WEEKDAY = 3
 
 
 class NoneAvailableError(RuntimeError):
@@ -115,7 +123,6 @@ class VolunteerPositions:
         (1, 36),
     )
 
-    # pylint: disable=too-many-arguments
     def __init__(
         self,
         year: int,
@@ -132,13 +139,14 @@ class VolunteerPositions:
         ],
         volunteer_options: pd.DataFrame,
     ):
+        # pylint: disable=too-many-arguments
+        # pylint: disable=too-many-locals
         """
         Initialize the data.
         """
         # list containing which Thursdays are in the month
         first_of_month = dt.datetime(year, month, 1)
         num_days = calendar.monthrange(year, month)[1]
-        THURSDAY_WEEKDAY = 3
         self.thursdays = [
             first_of_month + dt.timedelta(n)
             for n in range(num_days)
@@ -163,7 +171,7 @@ class VolunteerPositions:
         # all available duties
         self.duties = [
             duty_name
-            for duty_name in self.row_offset_dict.keys()
+            for duty_name in self.row_offset_dict
             if duty_name != self.skip_week_key
         ]
 
@@ -319,7 +327,7 @@ class VolunteerPositions:
         try:
             col, row = self.col_row_list[week_num]
         except IndexError:
-            raise RuntimeError("too many weeks???")
+            raise RuntimeError("too many weeks???") from None
 
         # Add the date
         volunteer_spreadsheet[col][row] = f"{self.thursdays[week_num-1]:%m/%d/%Y}"
@@ -335,7 +343,7 @@ class VolunteerPositions:
                 try:
                     row_offset = self.row_offset_dict[position]
                 except KeyError:
-                    raise RuntimeError("Bad Position")
+                    raise RuntimeError("Bad Position") from None
 
                 volunteer_spreadsheet[col][row + row_offset] = name
 
